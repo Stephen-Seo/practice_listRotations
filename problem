@@ -1,0 +1,7 @@
+Given a length-n list like (a b c d e), the rotations of the list are the n
+lists (a b c d e), (b c d e a), (c d e a b), (d e a b c), and (e a b c d), in
+any order.
+
+Your task is to write a program that takes a list and returns its rotations.
+When you are finished, you are welcome to read or run a suggested solution, or
+to post your own solution or discuss the exercise in the comments below.
