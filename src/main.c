@@ -2,72 +2,92 @@
 #include <string.h>
 #include <stdio.h>
 
-typedef struct SimpleVector {
-    char *data;
-    unsigned int capacity;
-    unsigned int size;
-} SimpleVector;
+typedef struct Node {
+    struct Node* next;
+    char value;
+} Node;
 
-SimpleVector sv_init(unsigned int capacity) {
-    SimpleVector sv;
-    memset(&sv, 0, sizeof(SimpleVector));
-
-    sv.data = (char*)malloc(capacity * sizeof(char));
-    sv.capacity = capacity;
-
-    return sv;
-}
-
-void sv_push(SimpleVector *sv, char value) {
-    if(!sv->data || sv->capacity == 0) {
-        return;
-    } else if(sv->size == sv->capacity) {
-        char *new_data = (char*)malloc(sv->capacity * 2 * sizeof(char));
-        memcpy(new_data, sv->data, sizeof(char) * sv->size);
-        free(sv->data);
-        sv->data = new_data;
-        sv->capacity *= 2;
-    }
-
-    sv->data[sv->size++] = value;
-}
-
-void sv_cleanup(SimpleVector sv) {
-    if(sv.data) {
-        free(sv.data);
+void n_push(Node **node, char value) {
+    if(*node) {
+        Node *current = *node;
+        if(current->next) {
+            n_push(&current->next, value);
+        } else {
+            current->next = (Node*)malloc(sizeof(Node));
+            memset(current->next, 0, sizeof(Node));
+            current->next->value = value;
+        }
+    } else {
+        *node = (Node*)malloc(sizeof(Node));
+        memset(*node, 0, sizeof(Node));
+        (*node)->value = value;
     }
 }
 
-void sv_print(SimpleVector sv) {
-    for(unsigned int i = 0; i < sv.size; ++i) {
-        printf("%c ", sv.data[i]);
+Node* list_from_input(int argc, char **argv) {
+    Node *head = NULL;
+
+    --argc; ++argv;
+    while(argc > 0) {
+        n_push(&head, argv[0][0]);
+        --argc; ++argv;
+    }
+
+    return head;
+}
+
+void cleanup_list(Node *node) {
+    if(node) {
+        if(node->next) {
+            cleanup_list(node->next);
+        }
+        free(node);
+    }
+}
+
+void n_print(Node *node) {
+    printf("%c ", node->value);
+    if(node->next) {
+        n_print(node->next);
+    }
+}
+
+void n_print_until(Node *current, Node *end) {
+    printf("%c ", current->value);
+    if(current->next && current->next != end) {
+        n_print_until(current->next, end);
+    }
+}
+
+void n_print_rotations(Node *node) {
+    Node *start = node;
+    while(node) {
+        printf("  ");
+        n_print(node);
+        if(start != node) {
+            n_print_until(start, node);
+        }
+        printf("\n");
+        node = node->next;
     }
     printf("\n");
 }
 
-void sv_print_rotations(SimpleVector sv) {
-    for(unsigned int i = 0; i < sv.size; ++i) {
-        printf("  ");
-        for(unsigned int j = i; j < i + sv.size; ++j) {
-            printf("%c ", sv.data[j % sv.size]);
-        }
-        printf("\n");
-    }
-}
-
 int main(int argc, char **argv) {
-    SimpleVector sv = sv_init(32);
+    Node *list = list_from_input(argc, argv);
 
-    --argc; ++argv;
-    while(argc > 0) {
-        sv_push(&sv, argv[0][0]);
-        --argc; ++argv;
+    if(!list) {
+        printf("List is empty\n");
+        cleanup_list(list);
+        return 1;
     }
-    printf("Got vector: ");
-    sv_print(sv);
-    printf("Rotations:\n");
-    sv_print_rotations(sv);
 
-    sv_cleanup(sv);
+    printf("Got list: ");
+    n_print(list);
+
+    printf("\nRotations:\n");
+    n_print_rotations(list);
+
+    cleanup_list(list);
     return 0;
 }
