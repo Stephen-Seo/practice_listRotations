@@ -73,6 +73,51 @@ void n_print_rotations(Node *node) {
     printf("\n");
 }
 
+Node** n_get_rotations(Node *list) {
+    unsigned int length = 0;
+    Node *current = list;
+    while(current) {
+        ++length;
+        current = current->next;
+    }
+    if(length == 0) {
+        return NULL;
+    }
+
+    Node **array_of_lists = (Node**)malloc((length + 1) * sizeof(Node*));
+    memset(array_of_lists, 0, (length + 1) * sizeof(Node*));
+
+    current = list;
+    Node *temp, *head;
+    unsigned int i = 0;
+    while(current) {
+        head = current;
+        temp = current;
+        while(temp) {
+            n_push(array_of_lists + i, temp->value);
+            temp = temp->next;
+        }
+        temp = list;
+        while(temp && temp != head) {
+            n_push(array_of_lists + i, temp->value);
+            temp = temp->next;
+        }
+        ++i;
+        current = current->next;
+    }
+
+    return array_of_lists;
+}
+
+void na_cleanup(Node **array_of_lists) {
+    Node **current = array_of_lists;
+    while(*current) {
+        cleanup_list(*current);
+        ++current;
+    }
+    free(array_of_lists);
+}
+
 int main(int argc, char **argv) {
     Node *list = list_from_input(argc, argv);
 
@@ -88,6 +133,17 @@ int main(int argc, char **argv) {
     printf("\nRotations:\n");
     n_print_rotations(list);
 
+    printf("Getting lists of rotations...\n");
+    Node **array_of_lists = n_get_rotations(list);
+    Node **current = array_of_lists;
+    while(*current) {
+        printf("  ");
+        n_print(*current);
+        printf("\n");
+        ++current;
+    }
+
+    na_cleanup(array_of_lists);
     cleanup_list(list);
     return 0;
 }
